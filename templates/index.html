@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Liver Disease Predictor</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            max-width: 980px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.8s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 45px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 2;
+        }
+
+        .doctor-container {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            flex-shrink: 0;
+        }
+
+        .doctor-photo {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            border: 5px solid rgba(255,255,255,0.9);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+        }
+
+
+        /* Liver organ held near doctor's hand, with heartbeat-style pulse & glow */
+        .liver-badge-ring {
+            position: absolute;
+            right: -14px;
+            bottom: -12px;
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+            z-index: 2;
+        }
+
+        .liver-wrap {
+            position: absolute;
+            right: -3px;
+            bottom: 4px;
+            width: 54px;
+            height: 44px;
+            z-index: 3;
+            background: linear-gradient(135deg, #c96a3e 0%, #a24a26 55%, #7a3517 100%);
+            border-radius: 60% 40% 55% 45% / 55% 45% 60% 40%;
+            box-shadow: 0 5px 14px rgba(0,0,0,0.15);
+            animation: liverPulse 2.2s ease-in-out infinite;
+        }
+
+        .liver-wrap::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: -15px;
+            width: 27px;
+            height: 22px;
+            background: linear-gradient(135deg, #c96a3e 0%, #8b4513 100%);
+            border-radius: 60% 40% 50% 50% / 60% 40% 60% 40%;
+        }
+
+        .liver-wrap::after {
+            content: '';
+            position: absolute;
+            top: 7px;
+            left: 12px;
+            width: 19px;
+            height: 10px;
+            background: rgba(255,255,255,0.35);
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+
+        @keyframes liverPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 5px 14px rgba(0,0,0,0.15), 0 0 0 rgba(255,140,60,0);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 5px 18px rgba(0,0,0,0.2), 0 0 18px rgba(255,140,60,0.65);
+            }
+        }
+
+        /* Magnifying glass orbiting the liver, as if the doctor is examining it */
+        .magnifier-orbit {
+            position: absolute;
+            right: -21px;
+            bottom: -19px;
+            width: 90px;
+            height: 90px;
+            z-index: 4;
+            pointer-events: none;
+            animation: orbitRotate 4.5s linear infinite;
+        }
+
+        .magnifier {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            margin-left: -12px;
+            width: 24px;
+            height: 24px;
+            border: 4px solid rgba(255,255,255,0.9);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            animation: counterRotate 4.5s linear infinite;
+        }
+
+        .magnifier::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            right: -7px;
+            width: 4px;
+            height: 16px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 2px;
+            transform: rotate(45deg);
+        }
+
+        @keyframes orbitRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes counterRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-360deg); }
+        }
+
+        /* Heartbeat/EKG line sweeping across the header */
+        .ekg-line {
+            position: absolute;
+            bottom: 6px;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            opacity: 0.4;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .ekg-line polyline {
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 18 600;
+            animation: ekgSweep 3.2s linear infinite;
+        }
+
+        @keyframes ekgSweep {
+            to { stroke-dashoffset: -618; }
+        }
+
+        .medical-icons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .med-icon {
+            position: absolute;
+            font-size: 20px;
+            opacity: 0.3;
+            animation: floatIcon 8s ease-in-out infinite;
+        }
+
+        .med-icon:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .med-icon:nth-child(2) { top: 20%; right: 15%; animation-delay: 1s; }
+        .med-icon:nth-child(3) { top: 60%; left: 5%; animation-delay: 2s; }
+        .med-icon:nth-child(4) { top: 70%; right: 10%; animation-delay: 3s; }
+        .med-icon:nth-child(5) { top: 40%; left: 15%; animation-delay: 4s; }
+
+        @keyframes floatIcon {
+            0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.2; }
+            50% { transform: translateY(-20px) rotate(10deg); opacity: 0.4; }
+        }
+
+        .header-text {
+            color: white;
+            text-align: left;
+        }
+
+        .header-text h1 {
+            font-size: 34px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header-text p {
+            color: rgba(255,255,255,0.9);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .logo {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .form-container { padding: 40px 30px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        label { display: block; color: #555; font-size: 13px; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; }
+        input, select { width: 100%; padding: 14px 16px; border: 2px solid #e0e0e0; border-radius: 12px; font-size: 15px; font-family: 'Poppins', sans-serif; transition: all 0.3s ease; }
+        input:focus, select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1); }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            margin-top: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: rotate(30deg);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .result-card {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            animation: popIn 0.5s ease;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .result-card.disease {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a5a 100%);
+            color: white;
+            animation: dangerPulse 2s infinite;
+        }
+
+        @keyframes dangerPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(255, 107, 107, 0); }
+        }
+
+        .result-card.healthy {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            animation: successPulse 2s infinite;
+        }
+
+        @keyframes successPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(46, 204, 113, 0); }
+        }
+
+        .result-icon { font-size: 60px; margin-bottom: 15px; }
+        .result-title { font-size: 28px; font-weight: 700; }
+        .result-confidence { font-size: 18px; opacity: 0.9; margin-bottom: 10px; }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            border: 3px solid white;
+            animation: badgePop 0.5s ease;
+        }
+
+        @keyframes badgePop {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .severity-HIGH { background: #8b0000; }
+        .severity-MODERATE { background: #ff8c00; }
+        .severity-LOW { background: #006400; }
+
+        .recommendations-panel {
+            margin-top: 30px;
+            padding: 30px;
+            border-radius: 20px;
+            background: #f8f9ff;
+            border: 2px solid #e0e5ff;
+            animation: slideUp 0.6s ease;
+        }
+
+        .recommendations-panel h3 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .risk-factors { margin-bottom: 20px; }
+        .risk-factors h4 { color: #e74c3c; font-size: 14px; text-transform: uppercase; margin-bottom: 10px; }
+
+        .risk-tag {
+            display: inline-block;
+            background: #ffe0e0;
+            color: #c0392b;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin: 4px;
+            border: 1px solid #ffcdd2;
+            animation: tagAppear 0.3s ease;
+        }
+
+        @keyframes tagAppear {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .recommendations-list { list-style: none; padding: 0; }
+
+        .recommendations-list li {
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            font-size: 14px;
+            color: #444;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            transition: all 0.2s ease;
+        }
+
+        .recommendations-list li:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .recommendations-list li:first-child {
+            border-left-color: #e74c3c;
+            background: #fff5f5;
+            font-weight: 600;
+            color: #c0392b;
+        }
+
+        .recommendations-list li::before {
+            content: attr(data-num);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .recommendations-list li:first-child::before {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 12px;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 600px) {
+            .header-content { flex-direction: column; }
+            .form-grid { grid-template-columns: 1fr; }
+            .container { border-radius: 20px; }
+            .header { padding: 20px; }
+            .form-container { padding: 30px 20px; }
+            .doctor-container { width: 120px; height: 120px; }
+            .liver-badge-ring { right: -8px; bottom: -6px; width: 42px; height: 42px; }
+            .liver-wrap { right: -2px; bottom: 2px; width: 30px; height: 24px; }
+            .magnifier-orbit { right: -12px; bottom: -10px; width: 50px; height: 50px; }
+            .magnifier { width: 14px; height: 14px; margin-left: -7px; border-width: 2px; }
+        }
+    </style>
+<base target="_blank">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="medical-icons">
+                <span class="med-icon">+</span>
+                <span class="med-icon">&#9829;</span>
+                <span class="med-icon">&#9733;</span>
+                <span class="med-icon">+</span>
+                <span class="med-icon">&#9829;</span>
+            </div>
+
+            <svg class="ekg-line" viewBox="0 0 300 40" preserveAspectRatio="none">
+                <polyline points="0,20 40,20 55,4 68,36 80,20 110,20 122,8 135,32 148,20 300,20"></polyline>
+            </svg>
+
+            <div class="header-content">
+                <div class="doctor-container">
+                    <img class="doctor-photo" src="{{ url_for('static', filename='doctor.png') }}" alt="Doctor">
+                    <div class="liver-badge-ring"></div>
+                    <div class="liver-wrap"></div>
+                    <div class="magnifier-orbit"><div class="magnifier"></div></div>
+                </div>
+
+                <div class="header-text">
+                    <h1>Liver Disease Predictor</h1>
+                    <p>AI-Powered Healthcare Assistant</p>
+                    <p>Ethiopian Giftedness &amp; Talent Development Center</p>
+                </div>
+
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="logo">
+            </div>
+        </div>
+
+        <div class="form-container">
+            <form action="/predict" method="post">
+                <div class="form-grid">
+                    <div><label>Age</label><input type="number" name="age" value="55" required></div>
+                    <div><label>Gender</label><select name="gender"><option value="Male">Male</option><option value="Female">Female</option></select></div>
+                    <div><label>Total Bilirubin</label><input type="number" step="0.1" name="tb" value="2.5" required></div>
+                    <div><label>Direct Bilirubin</label><input type="number" step="0.1" name="db" value="1.2" required></div>
+                    <div><label>Alkaline Phosphotase</label><input type="number" name="alp" value="250" required></div>
+                    <div><label>ALT (SGPT)</label><input type="number" name="alt" value="80" required></div>
+                    <div><label>AST (SGOT)</label><input type="number" name="ast" value="120" required></div>
+                    <div><label>Total Proteins</label><input type="number" step="0.1" name="tp" value="6.5" required></div>
+                    <div><label>Albumin</label><input type="number" step="0.1" name="albumin" value="3.2" required></div>
+                    <div><label>A/G Ratio</label><input type="number" step="0.01" name="ag_ratio" value="0.9" required></div>
+                </div>
+                <button type="submit">ANALYZE PATIENT</button>
+            </form>
+
+            {% if prediction %}
+            <div class="result-card {{ css_class }}">
+                <div class="result-icon">{{ icon }}</div>
+                <div class="result-title">{{ prediction }}</div>
+                <div class="result-confidence">Confidence: {{ confidence }}%</div>
+                <div class="severity-badge severity-{{ severity }}">{{ severity }} RISK</div>
+            </div>
+
+            <div class="recommendations-panel">
+                <h3>Clinical Recommendations for Doctor</h3>
+                {% if risk_factors %}
+                <div class="risk-factors">
+                    <h4>Abnormal Markers Detected:</h4>
+                    {% for factor in risk_factors %}<span class="risk-tag">{{ factor }}</span>{% endfor %}
+                </div>
+                {% endif %}
+                <ul class="recommendations-list">
+                    {% for rec in recommendations %}<li data-num="{{ loop.index }}">{{ rec }}</li>{% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="footer">&copy; 2026 Ethiopian Giftedness &amp; Talent Development Center | AI-Powered Healthcare</div>
+    </div>
+</body>
+</html>
