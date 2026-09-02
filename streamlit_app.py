@@ -1,10 +1,11 @@
-import base64
 from pathlib import Path
 
 import joblib
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
+
+from assets import DOCTOR_PNG_B64, LOGO_PNG_B64
 
 APP_DIR = Path(__file__).parent
 
@@ -23,12 +24,6 @@ def load_model_and_scaler():
     model = joblib.load(APP_DIR / "model.pkl")
     scaler = joblib.load(APP_DIR / "scaler.pkl")
     return model, scaler
-
-
-@st.cache_data
-def image_to_base64(path: Path) -> str:
-    with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
 
 
 # ---------------------------------------------------------------------------
@@ -258,10 +253,8 @@ st.markdown(
 # with Streamlit's own styles.
 # ---------------------------------------------------------------------------
 
-doctor_path = APP_DIR / "static" / "doctor.png"
-logo_path = APP_DIR / "static" / "logo.png"
-doctor_b64 = image_to_base64(doctor_path) if doctor_path.exists() else ""
-logo_b64 = image_to_base64(logo_path) if logo_path.exists() else ""
+doctor_b64 = DOCTOR_PNG_B64
+logo_b64 = LOGO_PNG_B64
 
 HEADER_HTML = f"""
 <html>
