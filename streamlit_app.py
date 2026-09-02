@@ -304,7 +304,7 @@ HEADER_HTML = f"""
 
     .header {{
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 40px 20px;
+        padding: 44px 20px;
         text-align: center;
         border-radius: 24px;
         position: relative;
@@ -321,7 +321,11 @@ HEADER_HTML = f"""
         overflow-x: auto;
     }}
 
-    .doctor-container {{ position: relative; width: 180px; height: 180px; flex-shrink: 0; }}
+    .doctor-container {{ position: relative; width: 220px; height: 220px; flex-shrink: 0; animation: doctorFloat 3.5s ease-in-out infinite; }}
+    @keyframes doctorFloat {{
+        0%, 100% {{ transform: translateY(0); }}
+        50% {{ transform: translateY(-8px); }}
+    }}
     .doctor-photo {{
         width: 100%;
         height: 100%;
@@ -394,33 +398,33 @@ HEADER_HTML = f"""
     @keyframes ekgSweep {{ to {{ stroke-dashoffset: -618; }} }}
 
     .header-text {{ color: white; text-align: left; min-width: 0; flex-shrink: 1; }}
-    .header-text h1 {{ font-size: 30px; font-weight: 700; margin-bottom: 8px; white-space: nowrap; }}
-    .header-text p {{ color: rgba(255,255,255,0.9); font-size: 14px; line-height: 1.5; white-space: nowrap; }}
+    .header-text h1 {{ font-size: 34px; font-weight: 700; margin-bottom: 8px; white-space: nowrap; }}
+    .header-text p {{ color: rgba(255,255,255,0.9); font-size: 15px; line-height: 1.5; white-space: nowrap; }}
 
-    @media (max-width: 680px) {{
-        .header {{ padding: 24px 16px; }}
+    @media (max-width: 860px) {{
+        .header {{ padding: 26px 16px; }}
         .header-content {{ gap: 14px; }}
-        .doctor-container {{ width: 110px; height: 110px; }}
-        .liver-badge-ring {{ right: -8px; bottom: -6px; width: 38px; height: 38px; }}
-        .liver-wrap {{ right: -2px; bottom: 2px; width: 27px; height: 22px; }}
-        .magnifier-orbit {{ right: -11px; bottom: -10px; width: 46px; height: 46px; }}
-        .magnifier {{ width: 13px; height: 13px; margin-left: -6px; border-width: 2px; }}
-        .header-text h1 {{ font-size: 18px; margin-bottom: 4px; }}
-        .header-text p {{ font-size: 10px; }}
-        .logo {{ width: 60px; height: 60px; border-radius: 10px; padding: 3px; }}
+        .doctor-container {{ width: 130px; height: 130px; }}
+        .liver-badge-ring {{ right: -9px; bottom: -7px; width: 44px; height: 44px; }}
+        .liver-wrap {{ right: -2px; bottom: 2px; width: 31px; height: 25px; }}
+        .magnifier-orbit {{ right: -13px; bottom: -11px; width: 54px; height: 54px; }}
+        .magnifier {{ width: 15px; height: 15px; margin-left: -7px; border-width: 2px; }}
+        .header-text h1 {{ font-size: 20px; margin-bottom: 4px; }}
+        .header-text p {{ font-size: 11px; }}
+        .logo {{ width: 74px; height: 74px; border-radius: 12px; padding: 4px; }}
     }}
 
     @media (max-width: 420px) {{
         .header-content {{ gap: 8px; }}
-        .doctor-container {{ width: 90px; height: 90px; }}
-        .header-text h1 {{ font-size: 14px; }}
-        .header-text p {{ font-size: 8px; }}
-        .logo {{ width: 48px; height: 48px; border-radius: 8px; padding: 2px; border-width: 2px; }}
+        .doctor-container {{ width: 100px; height: 100px; }}
+        .header-text h1 {{ font-size: 15px; }}
+        .header-text p {{ font-size: 9px; }}
+        .logo {{ width: 56px; height: 56px; border-radius: 9px; padding: 3px; border-width: 2px; }}
     }}
 
     .logo {{
-        width: 100px; height: 100px; border-radius: 16px;
-        border: 4px solid white; background: white; padding: 5px; box-sizing: border-box;
+        width: 130px; height: 130px; border-radius: 20px;
+        border: 4px solid white; background: white; padding: 7px; box-sizing: border-box;
         object-fit: contain;
         box-shadow: 0 6px 18px rgba(0,0,0,0.2);
         animation: pulse 2s infinite;
@@ -452,7 +456,7 @@ HEADER_HTML = f"""
 </html>
 """
 
-components.html(HEADER_HTML, height=300, scrolling=False)
+components.html(HEADER_HTML, height=345, scrolling=False)
 
 # ---------------------------------------------------------------------------
 # Input form
