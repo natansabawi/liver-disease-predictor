@@ -314,10 +314,11 @@ HEADER_HTML = f"""
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 30px;
-        flex-wrap: wrap;
+        gap: 24px;
+        flex-wrap: nowrap;
         position: relative;
         z-index: 2;
+        overflow-x: auto;
     }}
 
     .doctor-container {{ position: relative; width: 180px; height: 180px; flex-shrink: 0; }}
@@ -392,9 +393,30 @@ HEADER_HTML = f"""
     }}
     @keyframes ekgSweep {{ to {{ stroke-dashoffset: -618; }} }}
 
-    .header-text {{ color: white; text-align: left; }}
-    .header-text h1 {{ font-size: 30px; font-weight: 700; margin-bottom: 8px; }}
-    .header-text p {{ color: rgba(255,255,255,0.9); font-size: 14px; line-height: 1.5; }}
+    .header-text {{ color: white; text-align: left; min-width: 0; flex-shrink: 1; }}
+    .header-text h1 {{ font-size: 30px; font-weight: 700; margin-bottom: 8px; white-space: nowrap; }}
+    .header-text p {{ color: rgba(255,255,255,0.9); font-size: 14px; line-height: 1.5; white-space: nowrap; }}
+
+    @media (max-width: 680px) {{
+        .header {{ padding: 24px 16px; }}
+        .header-content {{ gap: 14px; }}
+        .doctor-container {{ width: 110px; height: 110px; }}
+        .liver-badge-ring {{ right: -8px; bottom: -6px; width: 38px; height: 38px; }}
+        .liver-wrap {{ right: -2px; bottom: 2px; width: 27px; height: 22px; }}
+        .magnifier-orbit {{ right: -11px; bottom: -10px; width: 46px; height: 46px; }}
+        .magnifier {{ width: 13px; height: 13px; margin-left: -6px; border-width: 2px; }}
+        .header-text h1 {{ font-size: 18px; margin-bottom: 4px; }}
+        .header-text p {{ font-size: 10px; }}
+        .logo {{ width: 60px; height: 60px; border-radius: 10px; padding: 3px; }}
+    }}
+
+    @media (max-width: 420px) {{
+        .header-content {{ gap: 8px; }}
+        .doctor-container {{ width: 90px; height: 90px; }}
+        .header-text h1 {{ font-size: 14px; }}
+        .header-text p {{ font-size: 8px; }}
+        .logo {{ width: 48px; height: 48px; border-radius: 8px; padding: 2px; border-width: 2px; }}
+    }}
 
     .logo {{
         width: 100px; height: 100px; border-radius: 16px;
