@@ -22,7 +22,8 @@ reviewing doctor. Built on the Indian Liver Patient Dataset (ILPD).
 
 ```
 .
-├── app.py                          # Flask app + prediction/recommendation logic
+├── app.py                          # Flask version (run locally with `python app.py`)
+├── streamlit_app.py                # Streamlit version (for Streamlit Community Cloud)
 ├── main.py                         # Trains the RandomForest model from the dataset
 ├── predict.py                      # Simple CLI script for one-off predictions
 ├── model.pkl                       # Trained model (RandomForestClassifier)
@@ -31,11 +32,16 @@ reviewing doctor. Built on the Indian Liver Patient Dataset (ILPD).
 ├── data/
 │   └── indian_liver_patient.csv    # Indian Liver Patient Dataset
 ├── templates/
-│   └── index.html                  # UI template
+│   └── index.html                  # UI template (Flask version)
 └── static/
     ├── doctor.png                  # Header doctor photo
     └── logo.png                    # Org logo
 ```
+
+There are two ways to run this app — pick whichever fits your host:
+
+- **Flask** (`app.py`) — a traditional server, good for Render, Railway, PythonAnywhere, etc.
+- **Streamlit** (`streamlit_app.py`) — for deploying on [Streamlit Community Cloud](https://share.streamlit.io/). Same model and clinical logic, rebuilt with Streamlit's widgets; the animated header (doctor photo, pulsing liver badge, orbiting magnifier) is embedded via an HTML component so the visuals carry over.
 
 ## Setup
 
@@ -49,11 +55,24 @@ pip install -r requirements.txt
 
 ## Run the app
 
+**Flask:**
 ```bash
 python app.py
 ```
-
 Then open http://127.0.0.1:5000 in your browser.
+
+**Streamlit:**
+```bash
+streamlit run streamlit_app.py
+```
+Then open the local URL Streamlit prints (usually http://localhost:8501).
+
+## Deploying on Streamlit Community Cloud
+
+1. Push this repo to GitHub.
+2. Go to [share.streamlit.io](https://share.streamlit.io/) → "New app".
+3. Pick this repo/branch, and set **Main file path** to `streamlit_app.py` (not `app.py` or `main.py`).
+4. Deploy. `requirements.txt` will be installed automatically.
 
 ## Retrain the model (optional)
 
