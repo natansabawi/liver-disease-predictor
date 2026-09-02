@@ -128,6 +128,33 @@ def get_recommendations(patient, prediction):
 
 
 # ---------------------------------------------------------------------------
+# Clinical reference ranges (shown to users so they know what's normal)
+# ---------------------------------------------------------------------------
+
+REFERENCE_RANGES = {
+    "tb": ("Total Bilirubin", "mg/dL", 0.1, 1.2),
+    "db": ("Direct Bilirubin", "mg/dL", 0.0, 0.3),
+    "alp": ("Alkaline Phosphotase", "IU/L", 44, 147),
+    "alt": ("ALT (SGPT)", "U/L", 7, 56),
+    "ast": ("AST (SGOT)", "U/L", 8, 40),
+    "tp": ("Total Proteins", "g/dL", 6.0, 8.3),
+    "albumin": ("Albumin", "g/dL", 3.5, 5.0),
+    "ag_ratio": ("A/G Ratio", "", 1.0, 2.5),
+}
+
+DEFAULTS = {
+    "age": 55, "gender": "Male", "tb": 2.5, "db": 1.2, "alp": 250,
+    "alt": 80, "ast": 120, "tp": 6.5, "albumin": 3.2, "ag_ratio": 0.9,
+}
+
+
+def ref_caption(key):
+    label, unit, lo, hi = REFERENCE_RANGES[key]
+    unit_str = f" {unit}" if unit else ""
+    st.caption(f"Normal range: {lo}\u2013{hi}{unit_str}")
+
+
+# ---------------------------------------------------------------------------
 # Global styling (gradient theme, button, card & badge styles)
 # ---------------------------------------------------------------------------
 
@@ -166,6 +193,17 @@ st.markdown(
         transform: translateY(-3px);
         box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
         color: white;
+    }
+
+    button[kind="secondary"] {
+        background: white !important;
+        color: #667eea !important;
+        border: 2px solid #667eea !important;
+        box-shadow: none !important;
+    }
+    button[kind="secondary"]:hover {
+        background: #f4f6ff !important;
+        transform: translateY(-2px);
     }
 
     .result-card {
@@ -398,24 +436,65 @@ components.html(HEADER_HTML, height=300, scrolling=False)
 # Input form
 # ---------------------------------------------------------------------------
 
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+if "do_reset" not in st.session_state:
+    st.session_state.do_reset = False
+
+for k, v in DEFAULTS.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
+
+if st.session_state.do_reset:
+    for k, v in DEFAULTS.items():
+        st.session_state[k] = v
+    st.session_state.do_reset = False
+
 st.markdown("### Patient Liver Function Panel")
 
 with st.form("patient_form"):
     col1, col2 = st.columns(2)
     with col1:
-        age = st.number_input("Age", min_value=0, max_value=120, value=55)
-        tb = st.number_input("Total Bilirubin", min_value=0.0, value=2.5, step=0.1, format="%.1f")
-        alp = st.number_input("Alkaline Phosphotase", min_value=0, value=250)
-        ast = st.number_input("AST (SGOT)", min_value=0, value=120)
-        albumin = st.number_input("Albumin", min_value=0.0, value=3.2, step=0.1, format="%.1f")
-    with col2:
-        gender = st.selectbox("Gender", ["Male", "Female"])
-        db = st.number_input("Direct Bilirubin", min_value=0.0, value=1.2, step=0.1, format="%.1f")
-        alt = st.number_input("ALT (SGPT)", min_value=0, value=80)
-        tp = st.number_input("Total Proteins", min_value=0.0, value=6.5, step=0.1, format="%.1f")
-        ag_ratio = st.number_input("A/G Ratio", min_value=0.0, value=0.9, step=0.01, format="%.2f")
+        age = st.number_input("Age", min_value=0, max_value=120, step=1, key="age")
+        st.caption("Patient age in years")
 
-    submitted = st.form_submit_button("ANALYZE PATIENT")
+        tb = st.number_input("Total Bilirubin", min_value=0.0, step=0.1, format="%.1f", key="tb")
+        ref_caption("tb")
+
+        alp = st.number_input("Alkaline Phosphotase", min_value=0, step=1, key="alp")
+        ref_caption("alp")
+
+        ast = st.number_input("AST (SGOT)", min_value=0, step=1, key="ast")
+        ref_caption("ast")
+
+        albumin = st.number_input("Albumin", min_value=0.0, step=0.1, format="%.1f", key="albumin")
+        ref_caption("albumin")
+    with col2:
+        gender = st.selectbox("Gender", ["Male", "Female"], key="gender")
+        st.caption("Biological sex as recorded")
+
+        db = st.number_input("Direct Bilirubin", min_value=0.0, step=0.1, format="%.1f", key="db")
+        ref_caption("db")
+
+        alt = st.number_input("ALT (SGPT)", min_value=0, step=1, key="alt")
+        ref_caption("alt")
+
+        tp = st.number_input("Total Proteins", min_value=0.0, step=0.1, format="%.1f", key="tp")
+        ref_caption("tp")
+
+        ag_ratio = st.number_input("A/G Ratio", min_value=0.0, step=0.01, format="%.2f", key="ag_ratio")
+        ref_caption("ag_ratio")
+
+    btn_col1, btn_col2 = st.columns([2, 1])
+    with btn_col1:
+        submitted = st.form_submit_button("ANALYZE PATIENT", use_container_width=True)
+    with btn_col2:
+        reset_clicked = st.form_submit_button("Reset", use_container_width=True, type="secondary")
+
+if reset_clicked:
+    st.session_state.do_reset = True
+    st.rerun()
 
 # ---------------------------------------------------------------------------
 # Prediction + results
@@ -462,11 +541,11 @@ if submitted:
         unsafe_allow_html=True,
     )
 
-    risk_tags_html = "".join(f'<span class="risk-tag">{f}</span>' for f in rec_data["risk_factors"])
+    risk_tags_html = "".join(f'<span class="risk-tag">\u26a0\ufe0f {f}</span>' for f in rec_data["risk_factors"])
     risk_section_html = (
         f'<div class="risk-factors"><h4>Abnormal Markers Detected:</h4>{risk_tags_html}</div>'
         if rec_data["risk_factors"]
-        else ""
+        else '<div class="risk-factors"><h4>\u2705 No abnormal markers detected</h4></div>'
     )
     recs_html = "".join(f"<li>{r}</li>" for r in rec_data["recommendations"])
 
@@ -480,6 +559,30 @@ if submitted:
         """,
         unsafe_allow_html=True,
     )
+
+    st.session_state.history.append({
+        "#": len(st.session_state.history) + 1,
+        "Age": int(age),
+        "Gender": gender,
+        "T.Bilirubin": tb,
+        "ALT": alt,
+        "AST": ast,
+        "Albumin": albumin,
+        "Result": "Disease" if result == 1 else "No Disease",
+        "Severity": rec_data["severity"],
+        "Confidence %": round(confidence * 100, 1),
+    })
+
+# ---------------------------------------------------------------------------
+# Compare past analyses
+# ---------------------------------------------------------------------------
+
+if st.session_state.history:
+    with st.expander(f"\U0001F4CA Compare analyses ({len(st.session_state.history)} run{'s' if len(st.session_state.history) != 1 else ''})", expanded=submitted and len(st.session_state.history) > 1):
+        st.dataframe(pd.DataFrame(st.session_state.history).set_index("#"), use_container_width=True)
+        if st.button("Clear comparison history"):
+            st.session_state.history = []
+            st.rerun()
 
 st.markdown(
     "<p style='text-align:center; color:#999; font-size:12px; margin-top:2rem;'>"
