@@ -359,8 +359,10 @@ HEADER_HTML = f"""
     .header-text p {{ color: rgba(255,255,255,0.9); font-size: 14px; line-height: 1.5; }}
 
     .logo {{
-        width: 90px; height: 90px; border-radius: 50%;
-        border: 4px solid white; box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+        width: 100px; height: 100px; border-radius: 16px;
+        border: 4px solid white; background: white; padding: 5px; box-sizing: border-box;
+        object-fit: contain;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.2);
         animation: pulse 2s infinite;
     }}
     @keyframes pulse {{ 0%, 100% {{ transform: scale(1); }} 50% {{ transform: scale(1.05); }} }}
