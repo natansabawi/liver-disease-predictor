@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#070b2b">
+    <title>Liver Disease Predictor | AI Healthcare</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #050821;
+            --bg-2: #080d2e;
+            --panel: rgba(12, 18, 55, .72);
+            --panel-strong: rgba(15, 21, 65, .9);
+            --line: rgba(126, 145, 255, .20);
+            --text: #f6f7ff;
+            --muted: #9ca7ce;
+            --pink: #ff3d71;
+            --purple: #7c4dff;
+            --blue: #3b82f6;
+            --cyan: #22d3ee;
+            --green: #32d583;
+            --orange: #ffae42;
+            --danger: #ff5574;
+            --shadow: 0 30px 90px rgba(0, 0, 0, .42);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            min-height: 100vh;
+            color: var(--text);
+            font-family: Inter, sans-serif;
+            background:
+                radial-gradient(circle at 15% 10%, rgba(124, 77, 255, .23), transparent 28%),
+                radial-gradient(circle at 88% 20%, rgba(255, 61, 113, .18), transparent 26%),
+                radial-gradient(circle at 55% 80%, rgba(34, 211, 238, .10), transparent 30%),
+                linear-gradient(135deg, #03051a 0%, #070b2b 45%, #0a1035 100%);
+            overflow-x: hidden;
+        }
+
+        .ambient {
+            position: fixed;
+            inset: -20%;
+            z-index: -5;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(255, 61, 113, .10), transparent 22%),
+                radial-gradient(circle at 70% 25%, rgba(124, 77, 255, .14), transparent 25%),
+                radial-gradient(circle at 50% 80%, rgba(34, 211, 238, .08), transparent 24%);
+            filter: blur(35px);
+            animation: ambientMove 14s ease-in-out infinite alternate;
+        }
+
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -4;
+            pointer-events: none;
+            opacity: .22;
+            background-image:
+                linear-gradient(rgba(116, 139, 255, .07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(116, 139, 255, .07) 1px, transparent 1px);
+            background-size: 55px 55px;
+            mask-image: linear-gradient(to bottom, black, transparent 90%);
+        }
+
+        @keyframes ambientMove {
+            from { transform: translate3d(-2%, -1%, 0) scale(1); }
+            to { transform: translate3d(3%, 2%, 0) scale(1.08); }
+        }
+
+        #particles {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: var(--size);
+            height: var(--size);
+            left: var(--x);
+            top: var(--y);
+            border-radius: 50%;
+            background: var(--particle-color);
+            box-shadow: 0 0 16px var(--particle-color), 0 0 34px var(--particle-color);
+            opacity: var(--opacity);
+            animation: particleFloat var(--duration) ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+
+        .particle.cross::after,
+        .particle.cross::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            background: currentColor;
+            border-radius: 99px;
+            transform: translate(-50%, -50%);
+        }
+
+        .particle.cross::after { width: 16px; height: 3px; }
+        .particle.cross::before { width: 3px; height: 16px; }
+
+        @keyframes particleFloat {
+            0%, 100% { transform: translate3d(0, 15px, 0) scale(.85); }
+            50% { transform: translate3d(20px, -35px, 0) scale(1.15); }
+        }
+
+        .nav {
+            width: min(1180px, calc(100% - 36px));
+            margin: 18px auto 0;
+            padding: 13px 16px 13px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background: rgba(5, 8, 32, .62);
+            backdrop-filter: blur(22px);
+            box-shadow: 0 16px 50px rgba(0,0,0,.18);
+            position: relative;
+            z-index: 10;
+            animation: navIn .7s ease both;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            text-decoration: none;
+            color: white;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            background: linear-gradient(135deg, var(--pink), var(--purple));
+            box-shadow: 0 8px 28px rgba(255, 61, 113, .28);
+            font-size: 21px;
+        }
+
+        .brand strong {
+            display: block;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 17px;
+        }
+
+        .brand small {
+            color: #8e9ac2;
+            font-size: 10px;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 27px;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: #aeb8da;
+            text-decoration: none;
+            font-size: 13px;
+            transition: .25s ease;
+        }
+
+        .nav-links a:hover { color: white; }
+
+        .nav-cta {
+            border: 1px solid rgba(255,61,113,.55);
+            border-radius: 12px;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            background: linear-gradient(135deg, rgba(255,61,113,.18), rgba(124,77,255,.18));
+            transition: .25s ease;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(255,61,113,.18);
+        }
+
+        @keyframes navIn {
+            from { opacity: 0; transform: translateY(-18px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page {
+            width: min(1180px, calc(100% - 36px));
+            margin: 0 auto;
+        }
+
+        .hero {
+            min-height: 600px;
+            display: grid;
+            grid-template-columns: .92fr 1.08fr;
+            align-items: center;
+            gap: 20px;
+            padding: 55px 0 35px;
+        }
+
+        .hero-copy {
+            animation: heroLeft .9s .15s ease both;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 13px;
+            border: 1px solid rgba(93, 124, 255, .35);
+            border-radius: 999px;
+            color: #b9c7ff;
+            background: rgba(50, 71, 160, .18);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            box-shadow: inset 0 0 22px rgba(70, 92, 255, .08);
+        }
+
+        .eyebrow i {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--cyan);
+            box-shadow: 0 0 13px var(--cyan);
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: .3; transform: scale(.7); }
+        }
+
+        h1 {
+            margin-top: 22px;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: clamp(44px, 5.2vw, 72px);
+            line-height: .98;
+            letter-spacing: -.055em;
+        }
+
+        h1 .gradient {
+            background: linear-gradient(90deg, #ff557c, #a678ff 52%, #5ee7ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-copy > p {
+            max-width: 560px;
+            margin-top: 22px;
+            color: #a9b3d2;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .trust-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 27px;
+        }
+
+        .trust {
+            padding: 12px 14px;
+            min-width: 112px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(12, 17, 51, .58);
+            backdrop-filter: blur(15px);
+        }
+
+        .trust b { display: block; font-size: 13px; }
+        .trust span { display: block; margin-top: 3px; color: #7f8bb3; font-size: 10px; }
+
+        @keyframes heroLeft {
+            from { opacity: 0; transform: translateX(-35px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .liver-stage {
+            min-height: 500px;
+            display: grid;
+            place-items: center;
+            position: relative;
+            perspective: 1100px;
+            animation: heroRight 1s .25s ease both;
+        }
+
+        .holo-ring {
+            position: absolute;
+            width: min(440px, 80vw);
+            aspect-ratio: 1;
+            border: 1px solid rgba(110, 105, 255, .35);
+            border-radius: 50%;
+            transform: rotateX(68deg);
+            box-shadow: 0 0 45px rgba(102, 83, 255, .15), inset 0 0 45px rgba(255, 61, 113, .10);
+        }
+
+        .holo-ring::before,
+        .holo-ring::after {
+            content: "";
+            position: absolute;
+            inset: 12%;
+            border: 1px solid rgba(48, 214, 255, .26);
+            border-radius: 50%;
+        }
+
+        .holo-ring::after {
+            inset: 25%;
+            border-color: rgba(255, 70, 150, .32);
+        }
+
+        .ring-2 {
+            width: 350px;
+            transform: rotateX(68deg) rotateZ(20deg);
+            animation: ringSpin 12s linear infinite;
+        }
+
+        .ring-3 {
+            width: 280px;
+            transform: rotateX(68deg) rotateZ(-28deg);
+            animation: ringSpinReverse 9s linear infinite;
+        }
+
+        @keyframes ringSpin {
+            to { transform: rotateX(68deg) rotateZ(380deg); }
+        }
+
+        @keyframes ringSpinReverse {
+            to { transform: rotateX(68deg) rotateZ(-388deg); }
+        }
+
+        .liver-orb {
+            width: min(420px, 78vw);
+            aspect-ratio: 1;
+            position: relative;
+            display: grid;
+            place-items: center;
+            transform-style: preserve-3d;
+            animation: liverFloat 5s ease-in-out infinite;
+        }
+
+        .liver-glow {
+            position: absolute;
+            width: 62%;
+            height: 62%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 63, 106, .48), rgba(123, 77, 255, .16) 45%, transparent 70%);
+            filter: blur(25px);
+            animation: glowPulse 2.6s ease-in-out infinite;
+        }
+
+        .liver-svg {
+            width: 88%;
+            height: 88%;
+            overflow: visible;
+            filter: drop-shadow(0 18px 28px rgba(0,0,0,.4));
+            transform: rotateY(-8deg) rotateX(3deg);
+        }
+
+        .liver-body {
+            fill: url(#liverGradient);
+            stroke: rgba(255, 154, 185, .85);
+            stroke-width: 2;
+            animation: organPulse 2.7s ease-in-out infinite;
+        }
+
+        .liver-network {
+            fill: none;
+            stroke: rgba(255, 210, 226, .58);
+            stroke-width: 1.2;
+            stroke-dasharray: 3 7;
+            animation: networkMove 4s linear infinite;
+        }
+
+        .node {
+            fill: #ffb0c8;
+            filter: url(#nodeGlow);
+            animation: nodePulse 1.7s ease-in-out infinite alternate;
+        }
+
+        .node:nth-child(2n) { animation-delay: .4s; }
+        .node:nth-child(3n) { animation-delay: .8s; }
+
+        .scan-line {
+            position: absolute;
+            width: 70%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ff5d91, #71e8ff, transparent);
+            box-shadow: 0 0 18px #ff5d91;
+            transform: rotate(-12deg);
+            animation: scan 3.2s ease-in-out infinite;
+            opacity: .7;
+        }
+
+        .liver-label {
+            position: absolute;
+            right: 2%;
+            bottom: 16%;
+            padding: 11px 14px;
+            border: 1px solid rgba(255, 105, 150, .35);
+            border-radius: 13px;
+            background: rgba(10, 14, 45, .76);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 12px 30px rgba(0,0,0,.24);
+        }
+
+        .liver-label b { display: block; font-size: 12px; }
+        .liver-label span { color: #8f9bc4; font-size: 10px; }
+
+        @keyframes liverFloat {
+            0%, 100% { transform: translateY(5px) rotateZ(-1deg); }
+            50% { transform: translateY(-16px) rotateZ(1deg); }
+        }
+
+        @keyframes glowPulse {
+            50% { transform: scale(1.18); opacity: .7; }
+        }
+
+        @keyframes organPulse {
+            50% { filter: brightness(1.18); }
+        }
+
+        @keyframes networkMove {
+            to { stroke-dashoffset: -60; }
+        }
+
+        @keyframes nodePulse {
+            from { opacity: .45; transform: scale(.8); }
+            to { opacity: 1; transform: scale(1.35); }
+        }
+
+        @keyframes scan {
+            0%, 100% { transform: translateY(90px) rotate(-12deg); opacity: 0; }
+            35%, 65% { opacity: .85; }
+            50% { transform: translateY(-90px) rotate(-12deg); }
+        }
+
+        @keyframes heroRight {
+            from { opacity: 0; transform: translateX(35px) scale(.97); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: minmax(0, 1.55fr) minmax(290px, .75fr);
+            gap: 16px;
+            align-items: start;
+        }
+
+        .glass {
+            border: 1px solid var(--line);
+            background: linear-gradient(145deg, rgba(18, 25, 70, .82), rgba(7, 11, 39, .76));
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(20px);
+        }
+
+        .form-card {
+            padding: 26px;
+            animation: reveal .8s ease both;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, rgba(255,61,113,.22), rgba(124,77,255,.25));
+            border: 1px solid rgba(255, 92, 142, .28);
+            font-size: 19px;
+        }
+
+        .section-title h2 {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 18px;
+        }
+
+        .section-title p {
+            margin-top: 3px;
+            color: #7783ab;
+            font-size: 11px;
+        }
+
+        .secure {
+            color: #7eeab2;
+            font-size: 10px;
+            border: 1px solid rgba(50,213,131,.24);
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: rgba(50,213,131,.07);
+            white-space: nowrap;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 13px;
+        }
+
+        .field {
+            position: relative;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 7px;
+            color: #c2c9e3;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .field-help {
+            display: block;
+            margin-top: 4px;
+            margin-bottom: 7px;
+            color: #667297;
+            font-size: 9px;
+            line-height: 1.4;
+        }
+
+        input, select {
+            width: 100%;
+            height: 46px;
+            padding: 0 13px;
+            border: 1px solid rgba(122, 140, 220, .20);
+            border-radius: 12px;
+            outline: none;
+            color: white;
+            background: rgba(5, 9, 34, .72);
+            font: 500 13px Inter, sans-serif;
+            transition: .25s ease;
+        }
+
+        input::placeholder { color: #4f5b80; }
+
+        input:hover, select:hover {
+            border-color: rgba(137, 155, 255, .45);
+            background: rgba(9, 14, 46, .85);
+        }
+
+        input:focus, select:focus {
+            border-color: rgba(255, 78, 126, .8);
+            box-shadow: 0 0 0 4px rgba(255,61,113,.08), 0 0 24px rgba(124,77,255,.10);
+            transform: translateY(-1px);
+        }
+
+        select option {
+            background: #0b1035;
+            color: white;
+        }
+
+        .analyze-btn {
+            width: 100%;
+            height: 54px;
+            margin-top: 18px;
+            border: 0;
+            border-radius: 14px;
+            color: white;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            font: 700 14px Inter, sans-serif;
+            background: linear-gradient(100deg, #ff3d67, #9b45ff 53%, #4c6fff);
+            box-shadow: 0 15px 38px rgba(124,77,255,.25);
+            transition: .28s ease;
+        }
+
+        .analyze-btn span {
+            position: relative;
+            z-index: 2;
+        }
+
+        .analyze-btn::before {
+            content: "";
+            position: absolute;
+            width: 80px;
+            height: 180%;
+            top: -40%;
+            left: -120px;
+            transform: rotate(20deg);
+            background: rgba(255,255,255,.26);
+            filter: blur(8px);
+            animation: buttonShine 3.5s infinite;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 48px rgba(255,61,113,.24), 0 8px 28px rgba(124,77,255,.25);
+        }
+
+        .analyze-btn:active { transform: translateY(0); }
+
+        @keyframes buttonShine {
+            0%, 40% { left: -120px; }
+            70%, 100% { left: 120%; }
+        }
+
+        .privacy-note {
+            text-align: center;
+            color: #657197;
+            font-size: 10px;
+            margin-top: 10px;
+        }
+
+        .side {
+            display: grid;
+            gap: 13px;
+        }
+
+        .info-card {
+            padding: 20px;
+            min-height: 140px;
+            position: relative;
+            overflow: hidden;
+            transition: .28s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(129, 145, 255, .34);
+        }
+
+        .info-card h3 {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 15px;
+        }
+
+        .info-card p {
+            color: #7e89af;
+            font-size: 11px;
+            line-height: 1.65;
+            margin-top: 8px;
+            max-width: 245px;
+        }
+
+        .info-icon {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            margin-bottom: 12px;
+            border-radius: 11px;
+            background: rgba(124,77,255,.14);
+            border: 1px solid rgba(124,77,255,.24);
+        }
+
+        .orb-decoration {
+            position: absolute;
+            right: -35px;
+            bottom: -45px;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 1px solid rgba(87, 111, 255, .23);
+            box-shadow: inset 0 0 35px rgba(87,111,255,.10);
+            animation: miniOrb 7s linear infinite;
+        }
+
+        @keyframes miniOrb {
+            to { transform: rotate(360deg); }
+        }
+
+        .checks {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .checks li {
+            color: #8f9abe;
+            font-size: 10px;
+            padding: 5px 0;
+        }
+
+        .checks li::before {
+            content: "✓";
+            color: var(--cyan);
+            margin-right: 8px;
+        }
+
+        .privacy-card {
+            border-color: rgba(50,213,131,.17);
+        }
+
+        .privacy-card .info-icon {
+            background: rgba(50,213,131,.10);
+            border-color: rgba(50,213,131,.2);
+        }
+
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .results {
+            margin-top: 17px;
+            padding: 24px;
+            animation: reveal .7s ease both;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .metric {
+            min-height: 145px;
+            padding: 18px;
+            border-radius: 17px;
+            border: 1px solid rgba(123, 143, 232, .17);
+            background: rgba(4, 8, 33, .55);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric::after {
+            content: "";
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            right: -45px;
+            bottom: -45px;
+            border-radius: 50%;
+            background: rgba(124,77,255,.12);
+            filter: blur(10px);
+        }
+
+        .metric-label {
+            color: #7d89ae;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        .metric-value {
+            margin-top: 12px;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 21px;
+            font-weight: 700;
+        }
+
+        .metric-sub {
+            margin-top: 7px;
+            color: #687496;
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        .metric-icon {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+
+        .confidence-ring {
+            width: 66px;
+            height: 66px;
+            margin-top: 5px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: conic-gradient(#7c4dff 0deg, #25315e 0deg);
+            position: relative;
+        }
+
+        .confidence-ring::before {
+            content: "";
+            position: absolute;
+            inset: 7px;
+            border-radius: 50%;
+            background: #090e32;
+        }
+
+        .confidence-ring span {
+            position: relative;
+            z-index: 1;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .result-card {
+            grid-column: 1 / -1;
+            margin-bottom: 14px;
+            padding: 26px;
+            border-radius: 19px;
+            text-align: center;
+            border: 1px solid rgba(255,255,ffffff,.16);
+            animation: resultPop .65s cubic-bezier(.2,.8,.2,1) both;
+        }
+
+        .result-card.disease {
+            background: radial-gradient(circle at 50% 0%, rgba(255,72,105,.28), transparent 60%),
+                        rgba(91, 16, 45, .72);
+            box-shadow: 0 0 50px rgba(255,61,113,.12);
+        }
+
+        .result-card.healthy {
+            background: radial-gradient(circle at 50% 0%, rgba(50,213,131,.22), transparent 60%),
+                        rgba(7, 64, 49, .62);
+            box-shadow: 0 0 50px rgba(50,213,131,.10);
+        }
+
+        .result-icon { font-size: 34px; }
+        .result-title {
+            margin-top: 8px;
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .result-confidence {
+            margin-top: 5px;
+            color: #b4bdd8;
+            font-size: 12px;
+        }
+
+        .severity-badge {
+            display: inline-block;
+            margin-top: 13px;
+            padding: 7px 16px;
+            border: 1px solid rgba(255,255,255,.25);
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .12em;
+        }
+
+        .severity-HIGH { background: rgba(255,55,85,.25); color: #ff8ba3; }
+        .severity-MODERATE { background: rgba(255,174,66,.18); color: #ffc477; }
+        .severity-LOW { background: rgba(50,213,131,.15); color: #7ce5af; }
+
+        .recommendations-panel {
+            grid-column: 1 / -1;
+            padding: 22px;
+            border: 1px solid rgba(123,143,232,.17);
+            border-radius: 18px;
+            background: rgba(4,8,33,.42);
+        }
+
+        .recommendations-panel h3 {
+            font-family: "Space Grotesk", sans-serif;
+            font-size: 17px;
+        }
+
+        .risk-factors { margin-top: 14px; }
+        .risk-factors h4 {
+            color: #ff829a;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin-bottom: 7px;
+        }
+
+        .risk-tag {
+            display: inline-block;
+            margin: 3px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            color: #ff9eb1;
+            background: rgba(255,61,113,.09);
+            border: 1px solid rgba(255,61,113,.18);
+            font-size: 10px;
+        }
+
+        .recommendations-list {
+            list-style: none;
+            margin-top: 14px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .recommendations-list li {
+            padding: 11px 13px;
+            color: #aab3ce;
+            border-radius: 11px;
+            background: rgba(15,21,58,.55);
+            border: 1px solid rgba(111,130,220,.10);
+            font-size: 11px;
+            line-height: 1.55;
+        }
+
+        .recommendations-list li::before {
+            content: attr(data-num);
+            display: inline-grid;
+            place-items: center;
+            width: 21px;
+            height: 21px;
+            margin-right: 9px;
+            border-radius: 50%;
+            color: white;
+            background: linear-gradient(135deg, var(--pink), var(--purple));
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+        footer {
+            padding: 40px 0 28px;
+            text-align: center;
+            color: #596583;
+            font-size: 10px;
+        }
+
+        .footer-heart {
+            display: inline-block;
+            color: var(--pink);
+            animation: heartBeat 1.4s ease-in-out infinite;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.25); }
+            28% { transform: scale(1); }
+        }
+
+        @keyframes resultPop {
+            from { opacity: 0; transform: scale(.94) translateY(15px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .hero { grid-template-columns: 1fr; text-align: center; padding-top: 45px; }
+            .hero-copy > p { margin-left: auto; margin-right: auto; }
+            .eyebrow { margin: 0 auto; }
+            .trust-row { justify-content: center; }
+            .liver-stage { min-height: 430px; margin-top: -10px; }
+            .dashboard { grid-template-columns: 1fr; }
+            .side { grid-template-columns: repeat(3, 1fr); }
+            .results-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 650px) {
+            .nav { width: calc(100% - 20px); margin-top: 10px; border-radius: 16px; }
+            .nav-links { display: none; }
+            .page { width: calc(100% - 20px); }
+            .hero { padding-top: 35px; min-height: auto; }
+            h1 { font-size: 46px; }
+            .hero-copy > p { font-size: 13px; }
+            .liver-stage { min-height: 350px; }
+            .holo-ring { width: 320px; }
+            .ring-2 { width: 255px; }
+            .ring-3 { width: 205px; }
+            .liver-orb { width: 330px; }
+            .form-card, .results { padding: 17px; border-radius: 19px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .side { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+            .secure { display: none; }
+            .metric { min-height: 130px; }
+        }
+
+        @media (max-width: 420px) {
+            h1 { font-size: 40px; }
+            .results-grid { grid-template-columns: 1fr; }
+            .trust { flex: 1; min-width: 0; }
+            .liver-stage { min-height: 310px; }
+            .liver-orb { width: 290px; }
+            .holo-ring { width: 285px; }
+            .ring-2 { width: 225px; }
+            .ring-3 { width: 180px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- HEADER with logo -->
+<header style="background: #050821; padding: 12px 0; border-bottom: 1px solid rgba(124,77,255,.3);">
+    <div style="max-width: 1180px; margin: 0 auto; padding: 0 18px; display: flex; align-items: center; justify-content: space-between;">
+        <!-- Logo -->
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="logo.png" alt="Ethiopian Giftedness and Talent Development Center" 
+                 style="height: 42px; border-radius: 8px; object-fit: contain;">
+            <div>
+                <h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 19px; letter-spacing: -0.5px;">
+                    Liver AI
+                </h1>
+                <p style="margin: 0; font-size: 10px; color: #9ca7ce; letter-spacing: 1.5px;">AI Disease Predictor</p>
+            </div>
+        </div>
+
+        <!-- Brand -->
+        <div style="display: flex; align-items: center; gap: 8px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: #a9b3d2;">
+            Ethiopian Giftedness &amp; Talent Development Center
+        </div>
+    </div>
+</header>
+
+<div class="ambient"></div>
+<div class="grid-bg"></div>
+
+<div id="particles" aria-hidden="true">
+    <span class="particle" style="--x:8%;--y:18%;--size:5px;--particle-color:#5ee7ff;--opacity:.7;--duration:7s;--delay:-1s;"></span>
+    <span class="particle" style="--x:16%;--y:65%;--size:3px;--particle-color:#ff5d91;--opacity:.65;--duration:9s;--delay:-3s;"></span>
+    <span class="particle" style="--x:28%;--y:12%;--size:4px;--particle-color:#9d7cff;--opacity:.6;--duration:8s;--delay:-2s;"></span>
+    <span class="particle" style="--x:39%;--y:80%;--size:5px;--particle-color:#5ee7ff;--opacity:.5;--duration:10s;--delay:-5s;"></span>
+    <span class="particle" style="--x:53%;--y:20%;--size:3px;--particle-color:#ff5d91;--opacity:.7;--duration:8s;--delay:-4s;"></span>
+    <span class="particle" style="--x:66%;--y:73%;--size:4px;--particle-color:#9d7cff;--opacity:.55;--duration:11s;--delay:-1s;"></span>
+    <span class="particle" style="--x:77%;--y:14%;--size:5px;--particle-color:#5ee7ff;--opacity:.65;--duration:7s;--delay:-6s;"></span>
+    <span class="particle" style="--x:91%;--y:52%;--size:4px;--particle-color:#ff5d91;--opacity:.65;--duration:9s;--delay:-2s;"></span>
+    <span class="particle cross" style="--x:12%;--y:42%;--size:4px;--particle-color:#62dfff;--opacity:.45;--duration:10s;--delay:-7s;"></span>
+    <span class="particle cross" style="--x:84%;--y:30%;--size:4px;--particle-color:#ff668f;--opacity:.45;--duration:8s;--delay:-4s;"></span>
+</div>
+
+<nav class="nav">
+    <a class="brand" href="#">
+        <div class="brand-icon">🫀</div>
+        <div>
+            <strong>Liver<span style="color:#ff557c">AI</span></strong>
+            <small>Disease Predictor</small>
+        </div>
+    </a>
+
+    <div class="nav-links">
+        <a href="#">Home</a>
+        <a href="#predict">Predict</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="#risk">Risk analysis</a>
+    </div>
+
+    <a class="nav-cta" href="#predict">Get Started&nbsp; →</a>
+</nav>
+
+<main class="page">
+    <section class="hero">
+        <div class="hero-copy">
+            <div class="eyebrow"><i></i> AI Powered · Secure · Intelligent</div>
+
+            <h1>
+                Understand your<br>
+                <span class="gradient">liver health</span><br>
+                with AI.
+            </h1>
+
+            <p>
+                Analyze key liver-function parameters with your machine-learning
+                model and receive an instant prediction, confidence score,
+                risk level, and clinical recommendation summary.
+            </p>
+
+            <div class="trust-row">
+                <div class="trust">
+                    <b>AI Analysis</b>
+                    <span>ML-powered prediction</span>
+                </div>
+                <div class="trust">
+                    <b>10 Markers</b>
+                    <span>Liver parameters</span>
+                </div>
+                <div class="trust">
+                    <b>Instant</b>
+                    <span>Results & risk level</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="liver-stage" aria-label="Animated 3D-style liver visualization">
+            <div class="holo-ring"></div>
+            <div class="holo-ring ring-2"></div>
+            <div class="holo-ring ring-3"></div>
+
+            <div class="liver-orb">
+                <div class="liver-glow"></div>
+
+                <svg class="liver-svg" viewBox="0 0 520 430" role="img" aria-label="Glowing liver illustration">
+                    <defs>
+                        <linearGradient id="liverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ff7b9c"/>
+                            <stop offset="38%" stop-color="#e83d6a"/>
+                            <stop offset="70%" stop-color="#a72b62"/>
+                            <stop offset="100%" stop-color="#5b2c8f"/>
+                        </linearGradient>
+                        <filter id="nodeGlow">
+                            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                            <feMerge>
+                                <feMergeNode in="blur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                        <filter id="softGlow">
+                            <feGaussianBlur stdDeviation="12"/>
+                        </filter>
+                    </defs>
+
+                    <!-- Soft organ aura -->
+                    <path d="M82 177 C99 101 180 63 277 72 C340 52 443 73 461 142 C474 194 438 237 387 249 C343 259 329 293 286 322 C244 350 184 337 141 309 C99 282 66 232 82 177Z"
+                          fill="rgba(255,70,120,.16)" filter="url(#softGlow)"/>
+
+                    <!-- Main 3D-style liver -->
+                    <path class="liver-body"
+                          d="M82 177 C99 101 180 63 277 72 C340 52 443 73 461 142 C474 194 438 237 387 249 C343 259 329 293 286 322 C244 350 184 337 141 309 C99 282 66 232 82 177Z"/>
+
+                    <!-- Lobes / depth -->
+                    <path d="M277 72 C319 103 335 151 324 196 C314 239 287 273 258 299 C232 322 198 328 168 317 C214 351 262 342 301 315 C330 294 343 259 387 249 C438 237 474 194 461 142 C443 73 340 52 277 72Z"
+                          fill="rgba(76,18,80,.33)"/>
+
+                    <path d="M277 73 C271 121 279 165 293 199 C304 226 320 239 343 249"
+                          fill="none" stroke="rgba(255,214,226,.32)" stroke-width="3"/>
+
+                    <!-- Biotech network -->
+                    <g class="liver-network">
+                        <path d="M119 180 L174 124 L231 153 L292 111 L361 135 L422 171"/>
+                        <path d="M112 230 L170 205 L231 236 L292 195 L354 211 L418 190"/>
+                        <path d="M153 281 L204 251 L255 286 L309 253 L365 275"/>
+                        <path d="M174 124 L170 205 L204 251"/>
+                        <path d="M231 153 L231 236 L255 286"/>
+                        <path d="M292 111 L292 195 L309 253"/>
+                        <path d="M361 135 L354 211 L365 275"/>
+                    </g>
+
+                    <g>
+                        <circle class="node" cx="119" cy="180" r="4"/>
+                        <circle class="node" cx="174" cy="124" r="4"/>
+                        <circle class="node" cx="231" cy="153" r="5"/>
+                        <circle class="node" cx="292" cy="111" r="4"/>
+                        <circle class="node" cx="361" cy="135" r="5"/>
+                        <circle class="node" cx="422" cy="171" r="4"/>
+                        <circle class="node" cx="170" cy="205" r="4"/>
+                        <circle class="node" cx="231" cy="236" r="5"/>
+                        <circle class="node" cx="292" cy="195" r="4"/>
+                        <circle class="node" cx="354" cy="211" r="5"/>
+                        <circle class="node" cx="204" cy="251" r="4"/>
+                        <circle class="node" cx="255" cy="286" r="4"/>
+                        <circle class="node" cx="309" cy="253" r="5"/>
+                        <circle class="node" cx="365" cy="275" r="4"/>
+                    </g>
+                </svg>
+
+                <div class="scan-line"></div>
+            </div>
+
+            <div class="liver-label">
+                <b>LIVE ANALYSIS</b>
+                <span>Biomarker network active</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="dashboard" id="predict">
+        <div class="glass form-card">
+            <div class="section-head">
+                <div class="section-title">
+                    <div class="section-icon">🧬</div>
+                    <div>
+                        <h2>Enter liver function parameters</h2>
+                        <p>Provide accurate values for a better model prediction</p>
+                    </div>
+                </div>
+                <div class="secure">🔒 Secure processing</div>
+            </div>
+
+            <form action="/predict" method="post" id="predictionForm">
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="age">Age</label>
+                        <span class="field-help">Patient age in years</span>
+                        <input id="age" type="number" name="age" value="55" min="0" max="120" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="gender">Gender</label>
+                        <span class="field-help">Biological sex as recorded</span>
+                        <select id="gender" name="gender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="tb">Total Bilirubin</label>
+                        <span class="field-help">Normal range: 0.1–1.2 mg/dL</span>
+                        <input id="tb" type="number" step="0.1" min="0" name="tb" value="2.5" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="db">Direct Bilirubin</label>
+                        <span class="field-help">Normal range: 0.0–0.3 mg/dL</span>
+                        <input id="db" type="number" step="0.1" min="0" name="db" value="1.2" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="alp">Alkaline Phosphatase</label>
+                        <span class="field-help">Normal range: 44–147 IU/L</span>
+                        <input id="alp" type="number" min="0" name="alp" value="250" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="alt">ALT (SGPT)</label>
+                        <span class="field-help">Normal range: 7–56 U/L</span>
+                        <input id="alt" type="number" min="0" name="alt" value="80" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="ast">AST (SGOT)</label>
+                        <span class="field-help">Normal range: 8–40 U/L</span>
+                        <input id="ast" type="number" min="0" name="ast" value="120" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="tp">Total Proteins</label>
+                        <span class="field-help">Normal range: 6.0–8.3 g/dL</span>
+                        <input id="tp" type="number" step="0.1" min="0" name="tp" value="6.5" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="albumin">Albumin</label>
+                        <span class="field-help">Normal range: 3.5–5.0 g/dL</span>
+                        <input id="albumin" type="number" step="0.1" min="0" name="albumin" value="3.2" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="ag_ratio">A/G Ratio</label>
+                        <span class="field-help">Normal range: 1.0–2.5</span>
+                        <input id="ag_ratio" type="number" step="0.01" min="0" name="ag_ratio" value="0.9" required>
+                    </div>
+                </div>
+
+                <button class="analyze-btn" type="submit">
+                    <span>✦ &nbsp; ANALYZE LIVER HEALTH &nbsp; →</span>
+                </button>
+
+                <div class="privacy-note">Your submitted values are processed by this application's prediction model.</div>
+            </form>
+        </div>
+
+        <aside class="side" id="how-it-works">
+            <div class="glass info-card">
+                <div class="info-icon">🧠</div>
+                <h3>AI Model</h3>
+                <p>Your trained machine-learning model analyzes the submitted liver-function parameters.</p>
+                <div class="orb-decoration"></div>
+            </div>
+
+            <div class="glass info-card" id="risk">
+                <div class="info-icon">📊</div>
+                <h3>What we analyze</h3>
+                <ul class="checks">
+                    <li>Bilirubin levels</li>
+                    <li>Liver enzymes: ALT & AST</li>
+                    <li>Protein & albumin levels</li>
+                    <li>A/G ratio and risk markers</li>
+                </ul>
+            </div>
+
+            <div class="glass info-card privacy-card">
+                <div class="info-icon">🛡️</div>
+                <h3>Application privacy</h3>
+                <p>The interface sends the entered values to the Flask prediction endpoint for model processing.</p>
+                <div class="orb-decoration"></div>
+            </div>
+        </aside>
+    </section>
+
+    {% if prediction %}
+    <section class="glass results" id="results">
+        <div class="section-head">
+            <div class="section-title">
+                <div class="section-icon">✦</div>
+                <div>
+                    <h2>Your prediction results</h2>
+                    <p>AI analysis based on the parameters you submitted</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="results-grid">
+            <div class="result-card {{ css_class }}">
+                <div class="result-icon">{{ icon }}</div>
+                <div class="result-title">{{ prediction }}</div>
+                <div class="result-confidence">Confidence: {{ confidence }}%</div>
+                <div class="severity-badge severity-{{ severity }}">{{ severity }} RISK</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-icon">🧬</div>
+                <div class="metric-label">Prediction</div>
+                <div class="metric-value">{{ prediction }}</div>
+                <div class="metric-sub">Model classification result</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-icon">◉</div>
+                <div class="metric-label">Risk level</div>
+                <div class="metric-value">{{ severity }}</div>
+                <div class="metric-sub">Based on the application's risk rules</div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-icon">◎</div>
+                <div class="confidence-ring" data-confidence="{{ confidence }}">
+                    <span>{{ confidence }}%</span>
+                </div>
+            </div>
+
+            <div class="metric">
+                <div class="metric-icon">⚠</div>
+                <div class="metric-value">{{ risk_factors|length }}</div>
+                <div class="metric-sub">Abnormal markers detected</div>
+            </div>
+
+            <div class="recommendations-panel">
+                <h3>Clinical recommendations for doctor</h3>
+
+                {% if risk_factors %}
+                <div class="risk-factors">
+                    <h4>Abnormal markers detected</h4>
+                    {% for factor in risk_factors %}
+                    <span class="risk-tag">{{ factor }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <ul class="recommendations-list">
+                    {% for rec in recommendations %}
+                    <li data-num="{{ loop.index }}">{{ rec }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</main>
+
+<footer>
+    <img src="logo.png" alt="Ethiopian Giftedness and Talent Development Center" 
+         style="height: 38px; margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto; opacity: 0.85;">
+    <span class="footer-heart">♥</span>
+    &nbsp; Ethiopian Giftedness &amp; Talent Development Center · AI-Powered Healthcare · 2026
+</footer>
+
+<script>
+    // Add a few extra particles dynamically for a richer animated background.
+    const particleLayer = document.getElementById("particles");
+    const particleColors = ["#5ee7ff", "#ff5d91", "#9d7cff", "#7eeab2"];
+
+    for (let i = 0; i < 18; i++) {
+        const p = document.createElement("span");
+        p.className = "particle";
+        p.style.setProperty("--x", Math.random() * 100 + "%");
+        p.style.setProperty("--y", Math.random() * 100 + "%");
+        p.style.setProperty("--size", (Math.random() * 3 + 2) + "px");
+        p.style.setProperty("--particle-color", particleColors[i % particleColors.length]);
+        p.style.setProperty("--opacity", (Math.random() * .35 + .2).toFixed(2));
+        p.style.setProperty("--duration", (Math.random() * 7 + 7) + "s");
+        p.style.setProperty("--delay", (-Math.random() * 10) + "s");
+        particleLayer.appendChild(p);
+    }
+
+    // Confidence ring uses the exact confidence returned by Flask.
+    document.querySelectorAll(".confidence-ring").forEach(ring => {
+        const value = Math.max(0, Math.min(100, Number(ring.dataset.confidence) || 0));
+        requestAnimationFrame(() => {
+            ring.style.background =
+                `conic-gradient(#7c4dff ${value * 3.6}deg, #25315e ${value * 3.6}deg)`;
+        });
+    });
+
+    // Show a short loading state while Flask processes the prediction.
+    const form = document.getElementById("predictionForm");
+    const button = form?.querySelector(".analyze-btn");
+
+    form?.addEventListener("submit", () => {
+        if (!button) return;
+        button.disabled = true;
+        button.querySelector("span").textContent = "✦  ANALYZING LIVER PARAMETERS…";
+        button.style.opacity = ".82";
+        button.style.cursor = "wait";
+    });
+
+    // Automatically reveal the returned result after prediction.
+    const results = document.getElementById("results");
+    if (results) {
+        setTimeout(() => {
+            results.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 180);
+    }
+</script>
+
+</body>
+</html>
