@@ -1,5 +1,7 @@
 # Liver Disease Classification using Machine Learning
 
+![Tests](https://github.com/<your-org>/<your-repo>/actions/workflows/tests.yml/badge.svg)
+
 Predicts whether a patient has liver disease from 10 clinical/blood-test attributes,
 using the **Indian Liver Patient Dataset (ILPD)** from the UCI Machine Learning Repository
 (583 patients: 416 with liver disease, 167 without).
@@ -15,10 +17,18 @@ liver_disease_project/
 ├── liver_disease_interpretability.py          # Stage 3: SHAP explanations
 ├── liver_disease_ensemble.py                  # Stage 4: Voting & Stacking ensembles
 ├── predict_patient.py                         # CLI for scoring a new patient
+├── app.py                                     # FastAPI backend serving the trained model
+├── Dockerfile                                 # container build for the API
+├── .dockerignore
+├── render.yaml                                # Render deployment config
+├── Procfile                                   # Railway/Heroku-style start command
+├── liverai_predictor.html                     # static, client-side demo page
 ├── Liver_Disease_Classification_Report.docx   # written summary report
 ├── tests/                                     # pytest suite (see "Testing" below)
+├── .github/workflows/tests.yml                # CI: runs tests + pipeline smoke tests
 ├── pytest.ini
 ├── .coveragerc
+├── .gitignore
 ├── requirements.txt
 ├── outputs/                    # Stage 1 outputs (plots, model_comparison.csv, saved model)
 ├── outputs_advanced/           # Stage 2 outputs (tuning comparison, saved tuned model)
@@ -211,14 +221,73 @@ python predict_patient.py --fast --age 60 --gender Male --total_bilirubin 8.5 \
     --total_proteins 6.0 --albumin 2.8 --ag_ratio 0.6
 ```
 
+## Deploying the API
+
+`app.py` is a FastAPI service wrapping the trained Voting Ensemble, so you can
+run the real model as a backend instead of the JS-approximated model embedded
+in `liverai_predictor.html`.
+
+Run it locally:
+```bash
+pip install -r requirements.txt
+uvicorn app:app --reload --port 8000
+```
+Then open `http://localhost:8000/docs` for interactive API docs (Swagger UI,
+auto-generated), or call it directly:
+```bash
+curl -X POST http://localhost:8000/predict -H "Content-Type: application/json" -d '{
+  "age": 60, "gender": "Male", "total_bilirubin": 8.5, "direct_bilirubin": 4.2,
+  "alkaline_phosphotase": 450, "alamine_aminotransferase": 90,
+  "aspartate_aminotransferase": 110, "total_proteins": 6.0, "albumin": 2.8,
+  "albumin_and_globulin_ratio": 0.6, "explain": true
+}'
+```
+
+**Endpoints:** `GET /health` (liveness check), `POST /predict` (prediction +
+optional SHAP explanation — set `"explain": false` to skip it and respond
+faster), `GET /docs` (interactive API docs).
+
+### Deploy with Docker
+
+```bash
+docker build -t liverai-api .
+docker run -p 8000:8000 liverai-api
+```
+The `Dockerfile` only copies `app.py`, `requirements.txt`, and
+`outputs_ensemble/` (via `.dockerignore`) — it doesn't need the rest of the
+repo to run, so the image stays small.
+
+### Deploy to a host
+
+- **Render** — a `render.yaml` is included; connect your GitHub repo at
+  [render.com](https://render.com), and it auto-detects the Docker config and
+  the `/health` check. Free tier available.
+- **Railway / Heroku** — a `Procfile` is included (`web: uvicorn app:app
+  --host 0.0.0.0 --port $PORT`); connect the repo and deploy.
+- **Fly.io / Google Cloud Run / AWS ECS** — use the `Dockerfile` directly with
+  `fly deploy`, `gcloud run deploy`, etc.
+
+Whichever host you use, set CORS in `app.py` (`allow_origins=["*"]` currently)
+to your actual frontend's domain before going to production, rather than
+leaving it open to all origins.
+
+### Pointing the static demo at your deployed API
+
+`liverai_predictor.html` currently predicts entirely client-side with an
+embedded, standalone Logistic Regression (see its `<script>` tag) so it needs
+no backend at all. If you deploy `app.py` and want the page to call the real
+Voting Ensemble instead, replace the `runPrediction()` function's local
+computation with a `fetch()` call to your deployed `/predict` endpoint.
+
 ## Testing
 
 The `tests/` directory has a pytest suite covering data preprocessing,
 each pipeline stage (baseline, SMOTE+tuning, ensembling), the CLI's argument
-handling, and integration checks against the saved model artifacts. Unit
-tests run against a small synthetic dataset (fast, no dependency on trained
-models); artifact tests skip cleanly if `liver_disease_ensemble.py` hasn't
-been run yet, rather than failing the suite.
+handling, the FastAPI backend (via `TestClient`, no real server needed), and
+integration checks against the saved model artifacts. Unit tests run against
+a small synthetic dataset (fast, no dependency on trained models); artifact
+and API tests skip cleanly if `liver_disease_ensemble.py` hasn't been run yet,
+rather than failing the suite.
 
 Run all tests:
 ```bash
@@ -229,6 +298,23 @@ Run with a coverage report:
 ```bash
 python -m pytest --cov=. --cov-report=term-missing
 ```
+
+## Continuous Integration
+
+`.github/workflows/tests.yml` runs on every push and pull request (and can be
+triggered manually via `workflow_dispatch`):
+
+- **`test`** — runs the full pytest suite with coverage on Python 3.10, 3.11,
+  and 3.12, and uploads the coverage report as a build artifact.
+- **`smoke-test-pipelines`** — a second job (after tests pass) that actually
+  runs `liver_disease_classification.py` and `liver_disease_ensemble.py`
+  end-to-end, then scores a sample patient with `predict_patient.py --fast`.
+  This catches breakage that unit tests alone wouldn't — e.g. a change that
+  passes every mocked test but breaks the real training run — and uploads the
+  generated plots/models as artifacts for inspection.
+
+To enable the badge at the top of this README, replace `<your-org>/<your-repo>`
+with your actual GitHub path once this project is pushed to a repository.
 
 ## Notes & limitations
 

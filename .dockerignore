@@ -1,0 +1,14 @@
+.git
+.github
+.pytest_cache
+__pycache__
+*.pyc
+tests/
+outputs/
+outputs_advanced/
+outputs_interpretability/
+*.docx
+*.html
+.coverage
+coverage.xml
+README.md

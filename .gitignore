@@ -1,15 +1,16 @@
 # Python
 __pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-env/
-.Python
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
 
-# Flask
-instance/
-.flaskenv
+# Virtual environments
+venv/
+.venv/
+env/
 
 # OS
 .DS_Store
@@ -18,4 +19,8 @@ Thumbs.db
 # Editors
 .vscode/
 .idea/
-*.swp
+
+# Note: outputs*/ directories (trained models, plots, comparison tables) are
+# intentionally NOT ignored -- they're small, reproducible artifacts that are
+# useful to keep versioned so results are visible without re-running the
+# pipelines. Remove this note and add outputs*/ here if that's not desired.
