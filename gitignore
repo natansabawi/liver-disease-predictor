@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Note: outputs*/ directories (trained models, plots, comparison tables) are
+# intentionally NOT ignored -- they're small, reproducible artifacts that are
+# useful to keep versioned so results are visible without re-running the
+# pipelines. Remove this note and add outputs*/ here if that's not desired.
